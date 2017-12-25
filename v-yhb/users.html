@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=gbk">
+    <title>商户游客数</title>
+    <link rel="stylesheet" href="css/header.css" />
+    <style>
+    *{
+      margin:0;
+      padding:0;
+      border:0;
+    } 
+    html {
+      height: 100%;
+      }
+    body { 
+      height: 100%; 
+    } 
+    #map{ 
+      height:100%;
+    }
+    </style>
+    </head>
+  <body>
+    <div id="map"></div>
+    <div style='position:fixed;top:20px;right:20px;'>
+      <ul style='list-style:none;background:green;border-radius:5px'>
+      <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#ccc;font-size:14px" href="simple-person.html">单个用户>></a></li>
+      <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#ccc;font-size:14px" href="same-route.html">同线路用户群>></a></li>
+        <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#ccc;font-size:14px" href="same-dest.html">同位置用户群>></a></li>
+        <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#fff;font-size:14px" href="users.html">商户游客数>></a></li>
+        
+        
+      </ul>
+    </div>
+    <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+     <script type="text/javascript" src="js/echarts.js"></script>
+    <script type="text/javascript" src="http://s1.bdstatic.com/r/www/cache/ecom/esl/2-0-6/esl.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+    <script type="text/javascript" src="data/users.js"></script>
+    <script type="text/javascript">
+    var map;
+      var BMapExt;
+      var option;
+      var myChart;
+
+      // 路径配置，模块化引入
+      require.config({
+        paths: {
+          echarts: './echarts/js'
+        },
+        packages: [{
+          name: 'BMap',
+          location: './BMap/src',
+          main: 'main'
+        }]
+      });
+
+      require(['echarts', 'BMap', 'echarts/chart/map'],function(echarts, BMapExtension) {
+        $('#main').css({
+          height: $('body').height(),
+          width: $('body').width()
+        });
+
+        // 初始化地图
+        var BMapExt = new BMapExtension($('#map')[0], BMap, echarts, {
+          enableMapClick: false,
+          minZoom:8
+        });
+        var map = BMapExt.getMap();
+        var container = BMapExt.getEchartsContainer();
+
+        var startPoint = {
+          x: 114.181,
+          y: 22.322
+        };
+
+        var point = new BMap.Point(startPoint.x, startPoint.y);
+
+        map.centerAndZoom(point, 17);
+        map.enableScrollWheelZoom(true);
+
+        // 地图自定义样式
+        map.setMapStyle({
+          styleJson:baseMapStyle
+        });
+
+        option = {
+            timeline:{
+                data:[
+                    '00-00-00','01-00-00','02:00:00','03:00:00','04:00:00','05:00:00','06:00:00',
+                    '07:00:00','08:00:00','09:00:00','10:00:00','11:00:00','12:00:00','13:00:00',
+                    '14:00:00','15:00:00','16:00:00','17:00:00','18:00:00','19:00:00','20:00:00',
+                    '21:00:00','22:00:00','23:00:00'
+                ],
+                type:'number',
+                label : {
+                  
+                    formatter : function(s) {
+                        return s;
+                    },
+                    show: true,
+                    interval: 0,
+                    rotate: -30,
+                    textStyle: {
+                        color: '#ccc'
+                    }
+                },
+                autoPlay : true,
+                playInterval : 1000,
+                y2 :25,
+                controlStyle:{
+                  itemSize: 15,
+                  itemGap: 5,
+                  normal : {
+                      color : '#fff'
+                  },
+                  emphasis : {
+                      color : '#1e90ff',
+                      fontSize:6
+                  }
+              }
+            },
+            options:[
+                {
+                    
+                    tooltip : {'trigger':'item'},
+                    dataRange: {
+                        min: 0,
+                        max : 4047,
+                        text:['高','低'],           // 文本，默认为数值文本
+                        calculable : true,
+                        x: 'left',
+                        y:'top',
+                        color: ['#ff3333','orange','yellow',"lime"],
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    series : [
+                      {
+                        name: '商户游客数',
+                        type: 'map',
+                        mapType: 'none',
+                        data: [],
+                        geoCoord: geoData,
+                        markPoint : {
+                            symbol:'emptyCircle',
+                            symbolSize : function (v){
+                                return v/50
+                            },
+                            effect : {
+                                show: true,
+                                shadowBlur : 0
+                            },
+                            itemStyle:{
+                                normal:{
+                                    label:{show:false},
+                                    color: function(val) {
+                                      var temp = val.data.value;
+                                      return temp > 3500 ? '#ff3333':temp > 3000 ? "orange":temp > 2000 ? "yellow":"lime";
+                                    }
+                                }
+                            },
+                            data : valueData['00:00:00']
+                        }
+                      }]
+                }
+            ]
+        };
+
+        
+         for(var i=1;i<24;i++){
+           var  itemKey=i<10?'0'+i+':00:00':i+':00:00';
+            var item={
+                    series : [
+                        {
+                        name: '商户游客数',
+                        type: 'map',
+                        mapType: 'none',
+                        data: [],
+                        geoCoord: geoData,
+                        markPoint : {
+                            symbol:'emptyCircle',
+                            symbolSize : function (v){
+                                return v/50
+                            },
+                            effect : {
+                                show: true,
+                                shadowBlur : 0
+                            },
+                            itemStyle:{
+                                normal:{
+                                    label:{show:false},
+                                    color: function(val) {
+                                      var temp = val.data.value;
+                                      return temp > 3500 ? '#ff3333':temp > 3000 ? "orange":temp > 2000 ? "yellow":"lime";
+                                    }
+                                }
+                            },
+                            data : valueData[itemKey]
+                        }
+                      }]
+                }
+            option.options.push(item);
+         }           
+        console.log(option.options);
+        myChart = BMapExt.initECharts(container);
+        window.onresize = myChart.resize;
+        BMapExt.setOption(option, true); 
+        BMapExt.refresh();
+      });
+</script>
+  </body>
+
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=gbk">
+    <title>单个用户</title>
+    <link rel="stylesheet" href="css/header.css" />
+    <style>
+    *{
+    	margin:0;
+    	padding:0;
+    	border:0;
+    } 
+    html {
+    	height: 100%;
+    	}
+    body { 
+    	height: 100%; 
+    } 
+    #map{ 
+    	height:100%;
+    }
+    @keyframes showSlow
+    {
+    from {opacity:0;}
+    to {opacity:1;}
+    }
+    </style>
+    </head>
+  <body>
+    <div id="map"></div>
+    <div style='position:fixed;top:20px;right:20px;'>
+      <ul style='list-style:none;background:green;border-radius:5px'>
+      <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#fff;font-size:14px" href="simple-person.html">单个用户>></a></li>
+      <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#ccc;font-size:14px" href="same-route.html">同线路用户群>></a></li>
+        <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#ccc;font-size:14px" href="same-dest.html">同位置用户群>></a></li>
+        <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#ccc;font-size:14px" href="users.html">商户游客数>></a></li>
+        
+        
+      </ul>
+    </div>
+    <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+     <script type="text/javascript" src="js/echarts.js"></script>
+    <script type="text/javascript" src="http://s1.bdstatic.com/r/www/cache/ecom/esl/2-0-6/esl.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+    <script type="text/javascript" src="data/person.js"></script>
+    <script type="text/javascript" src="js/Mapv.js"></script>
+    <script type="text/javascript" src="js/example.js"></script>
+    <script type="text/javascript">
+    var map;
+      var BMapExt;
+      var option;
+      var myChart;
+
+      // 路径配置，模块化引入
+      require.config({
+        paths: {
+          echarts: './echarts/js'
+        },
+        packages: [{
+          name: 'BMap',
+          location: './BMap/src',
+          main: 'main'
+        }]
+      });
+
+      require(['echarts', 'BMap', 'echarts/chart/map'],function(echarts, BMapExtension) {
+        $('#main').css({
+          height: $('body').height(),
+          width: $('body').width()
+        });
+
+        // 初始化地图
+        var BMapExt = new BMapExtension($('#map')[0], BMap, echarts, {
+          enableMapClick: false,
+          minZoom:8
+        });
+        var map = BMapExt.getMap();
+        var container = BMapExt.getEchartsContainer();
+
+        var startPoint = {
+          x: 114.131,
+          y: 22.380
+        };
+
+        var point = new BMap.Point(startPoint.x, startPoint.y);
+
+        map.centerAndZoom(point, 12);
+        map.enableScrollWheelZoom(true);
+
+        // 地图自定义样式
+        map.setMapStyle({
+          styleJson:baseMapStyle
+        });
+
+        //配置样式及数据
+        option = {
+        
+          title: {
+            text: '',
+            x: 'right',
+            y: 'bottom',
+            textStyle: {
+              color: '#fff'
+            }
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: function(v) {
+              return parseInt(v[2]/60)+'分钟';
+            }
+          },
+          series: [
+          {
+            name: '商圈',
+            type: 'map',
+            mapType: 'none',
+            data: [],
+            geoCoord: geoData,
+            markPoint : {
+                symbol:'emptyCircle',
+                symbolSize : function (v){
+                    return v/600
+                },
+                effect : {
+                    show: true,
+                    shadowBlur : 0
+                },
+                itemStyle:{
+                    normal:{
+                        label:{show:false},
+                        color: function(val) {
+                          var temp = val.data.value/60;
+                          return temp > 500 ? '#ff3333':temp > 300 ? "orange":temp > 100 ? "yellow":"lime";
+                        }
+                    }
+                },
+                data : valueData
+            }
+          }]
+        };
+
+        // 创建mapv实例
+        var mapv = new Mapv({
+            drawTypeControl: true,
+            map: map  // 百度地图的map实例
+        });
+
+        var layer = new Mapv.Layer({
+            zIndex: -1,
+            mapv: mapv,
+            dataType: 'polyline',
+            coordType: 'bd09ll',
+            data: routeData,
+            drawType: 'simple',
+            drawOptions: {
+                lineWidth: 3,
+                shadowBlur: 10,
+                shadowColor: "rgba(250, 255, 0, 2)",
+                strokeStyle: "rgba(250, 250, 0, 0.5)",
+                lineCap:"round",
+                lineJoin:"round"
+            },
+            animation: true,
+            animationOptions: {
+                size: 5
+            }
+        });
+        // var myCompOverlay = new ComplexCustomOverlay(new BMap.Point(114.1780442,22.28305049), "铜锣湾：停留0分钟","10802秒");
+        // map.addOverlay(myCompOverlay);
+
+        // setTimeout(function(){
+        //       var i=0;
+        //         var time=window.setInterval(function() {
+        //           if(i==180){
+        //               window.clearInterval(time);
+        //           }
+        //           if(i<170){
+        //             i+=10;
+        //           }else{
+        //             i++;
+        //           }
+                 
+        //          $("#tip").text("铜锣湾：停留"+i+"分钟");
+        //         }, 100);
+        // },2000);
+  
+        myChart = BMapExt.initECharts(container);
+        window.onresize = myChart.resize;
+        BMapExt.setOption(option);
+      });
+</script>
+  </body>
+
+</html>

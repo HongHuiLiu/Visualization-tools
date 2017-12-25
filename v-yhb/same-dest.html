@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=gbk">
+  <title>同位置用户群</title>
+  <link rel="stylesheet" href="css/header.css" />
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      border:0;
+    } 
+    html {
+      height: 100%;
+      }
+    body { 
+      height: 100%; 
+    } 
+    #main{ 
+      height:100%;
+    }
+    </style>
+</head>
+<body>
+  <div id="main"></div>
+  <div style='position:fixed;top:20px;right:20px;'>
+      <ul style='list-style:none;background:green;border-radius:5px'>
+      <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#ccc;font-size:14px" href="simple-person.html">单个用户>></a></li>
+      <!-- <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#ccc;font-size:14px" href="same-route.html">同线路用户群>></a></li>
+        <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#fff;font-size:14px" href="same-dest.html">同位置用户群>></a></li>
+        <li style='border-radius:5px;padding:3px 10px;'><a style="text-decoration:none;color:#ccc;font-size:14px" href="users.html">商户游客数>></a></li> -->
+        
+        
+      </ul>
+    </div>
+  <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+  <script type="text/javascript" src="js/echarts.js"></script>
+  <script type="text/javascript" src="http://s1.bdstatic.com/r/www/cache/ecom/esl/2-0-6/esl.js"></script>
+  <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+  <script type="text/javascript" src="data/odData.js"></script>
+  <script type="text/javascript" src="data/sameRoute.js"></script>
+  <!--<script type="text/javascript" src="js/Mapv.js"></script>
+-->
+<!--<script type="text/javascript" src="js/example.js"></script>
+-->
+<script type="text/javascript">
+      var map;
+      var BMapExt;
+      var option;
+      var myChart;
+
+      // 路径配置，模块化引入
+      require.config({
+        paths: {
+          echarts: './echarts/js'
+        },
+        packages: [{
+          name: 'BMap',
+          location: './BMap/src',
+          main: 'main'
+        }]
+      });
+
+      require(['echarts', 'BMap', 'echarts/chart/map'],function(echarts, BMapExtension) {
+
+        // 初始化地图
+        var BMapExt = new BMapExtension($('#main')[0], BMap, echarts, {
+          enableMapClick: false
+        });
+        var map = BMapExt.getMap();
+        var container = BMapExt.getEchartsContainer();
+
+        var startPoint = {
+          x: 114.127603,
+          y: 22.608925
+        };
+
+        var point = new BMap.Point(startPoint.x, startPoint.y);
+
+        map.centerAndZoom(point, 13);
+        map.enableScrollWheelZoom(false);
+
+        // 地图自定义样式
+        map.setMapStyle({
+          styleJson:baseMapStyle
+        });
+
+        //配置样式及数据
+        option = {
+          color: ['gold', 'aqua', 'lime'],
+          title: {
+            text: '',
+            x: 'right',
+            y: 'bottom',
+            textStyle: {
+              color: '#fff'
+            }
+          },
+          /*tooltip: {
+            trigger: 'item',
+            formatter: function(v) {
+              return v[2]+'人次';
+            }
+          },*/
+          dataRange: {
+              min : 0,
+              max : 4,
+              x:10,
+              y: 'center', 
+              //splitNumber:10,
+              itemHeight: 20, 
+              precision: 0,            
+              calculable : true,
+              color: ['#ff3333', 'orange', 'yellow','lime','aqua'],
+              textStyle:{
+                color:'#fff'
+              }
+          },
+          series: [
+          {
+            name: '商圈',
+            type: 'map',
+            mapType: 'none',
+            data: [],
+            geoCoord: geoData,
+            markLine: {
+              smooth: true,
+              /*effect: {
+                show: true,
+                scaleSize: 1,
+                period: 30,
+                shadowBlur: 10
+              },*/
+              itemStyle: {
+                normal: {
+                  borderWidth: 1,
+                  label: {
+                    show: true
+                  },
+                  lineStyle: {
+                    type: 'lines',
+                    shadowBlur: 10
+                  },
+                }
+              },
+              data: odData
+            }
+          }
+        
+          ]
+        };
+        myChart = BMapExt.initECharts(container);
+        window.onresize = myChart.resize;
+        BMapExt.setOption(option);
+      });
+</script>
+</body>
+
+</html>
